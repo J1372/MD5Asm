@@ -1,3 +1,5 @@
+%use smartalign
+
 DEFAULT REL
 section .data
 	align 4
@@ -29,8 +31,11 @@ section .text
 global	md5_hash_file
 global	md5_get_hash_rep
 
+alignmode	generic, nojmp
+
 ; rdi - ptr to block
 ; rsi - byte index to start zero pad
+align	16
 block_zero_pad:
 	push	rbp
 	mov	rbp, rsp
@@ -96,6 +101,7 @@ block_zero_pad:
 
 ; rdi - block ptr
 ; rsi - ptr prev hash iteration. new hash will be stored here ( at least 16 bytes )
+align	16
 md5_hash_block:
 	; rax, rcx, rdx, rdi, rsi, r8, r9, r10, r11
 	; store mutable in rax, rbx, rdx, rdi
@@ -240,6 +246,7 @@ md5_hash_block:
 
 ; rdi - file descriptor
 ; rsi - ptr md5 hash ( 16 bytes )
+align	16
 md5_hash_file:
 	push	rbp
 	mov	rbp, rsp
@@ -267,6 +274,7 @@ md5_hash_file:
 
 	xor	r14, r14	; r14 = total msg len in bytes = 0
 
+	align	16
 	md5_hash_file_loop:
 	; read block
 	mov	rdi, rbx
@@ -333,6 +341,7 @@ md5_hash_file:
 
 ; rdi - md5 hash ptr ( 16 bytes, LE )
 ; rsi - store ( at least 33 bytes )
+align	16
 md5_get_hash_rep:
 	push	rbp
 	mov	rbp, rsp
