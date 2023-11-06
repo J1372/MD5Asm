@@ -1,7 +1,7 @@
 %use smartalign
 
 DEFAULT REL
-section .data
+section .rodata
 	align 4
 	md5_s	dd 7,12,17,22,7,12,17,22,7,12,17,22,7,12,17,22,\
 				5,9,14,20,5,9,14,20,5,9,14,20,5,9,14,20,\
