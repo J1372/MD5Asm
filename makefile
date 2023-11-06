@@ -2,11 +2,11 @@ EXECUTABLE = md5hash
 OBJECTS = main.o md5_hash_x86-64.o
 
 $(EXECUTABLE): $(OBJECTS)
-	gcc -o $(EXECUTABLE) $(OBJECTS) -lm
+	gcc -o $(EXECUTABLE) $(OBJECTS) -lm -pthread
 
 # Build object files from C source.
 %.o: %.c
-	gcc -c -Wall -Werror $^ -o $@
+	gcc -c -Wall -Werror $^ -o $@ -pthread
 
 # Assemble object files from .asm files with nasm.
 %.o: %.asm
