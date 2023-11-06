@@ -52,8 +52,7 @@ void* hasher_thread(void* thread_arg)
         }
     }
 
-    free(thread_arg);
-    return NULL;
+    return thread_arg;
 }
 
 int main(int argc, char** argv)
@@ -109,15 +108,22 @@ int main(int argc, char** argv)
         if (pthread_create(threads + i, NULL, &hasher_thread, thread_args) != 0)
         {
             printf("Could not create thread %d\n", i);
+            free(thread_args);
         }
     }
 
     for (int i = 0; i < num_threads; ++i)
     {
-        if (pthread_join(threads[i], NULL) != 0)
+        void* to_free = NULL; // Free args given to thread.
+        if (pthread_join(threads[i], &to_free) == 0)
+        {
+            free(to_free);
+        }
+        else
         {
             printf("Could not join thread %d\n", i);
         }
+
     }
 
     free(threads);
