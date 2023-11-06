@@ -52,7 +52,7 @@ void* hasher_thread(void* thread_arg)
         }
     }
 
-    return thread_arg;
+    return NULL;
 }
 
 int main(int argc, char** argv)
@@ -82,9 +82,10 @@ int main(int argc, char** argv)
     if (num_threads > num_files)
         num_threads = num_files;
 
-    // Allocate space for threads and result hex strings.
+    // Allocate space for threads, thread arguments, and result hex strings.
     struct MD5Str* hashes = malloc(sizeof(struct MD5Str) * num_files);
     pthread_t* threads = malloc(sizeof(pthread_t) * num_threads);
+    struct ThreadArgs* thread_args = malloc(sizeof(struct ThreadArgs) * num_threads);
 
     // Compute number of files each thread is responsible for + any leftover files.
     int equal_work = num_files / num_threads;
@@ -96,30 +97,21 @@ int main(int argc, char** argv)
         // Index of the filename and output which the thread should start at.
         // Start where the previous thread left off.
         int index = equal_work * i + fmin(i, leftover);
-        
-        // Malloc could be made unnecessary here if ptrs, num_threads were made global ( which is possible because threads only read them ).
-        // Then, just the thread number ( i ) would need to be passed to threads.
-        // Make thread start reading a number of files at the index.
-        struct ThreadArgs* thread_args = malloc(sizeof(struct ThreadArgs));
-        thread_args->hash_stores = hashes + index;
-        thread_args->filenames = files + index;
-        thread_args->num_tasks = work;
 
-        if (pthread_create(threads + i, NULL, &hasher_thread, thread_args) != 0)
+        struct ThreadArgs* cur_thread_args = thread_args + i;
+        cur_thread_args->hash_stores = hashes + index;
+        cur_thread_args->filenames = files + index;
+        cur_thread_args->num_tasks = work;
+
+        if (pthread_create(threads + i, NULL, &hasher_thread, cur_thread_args) != 0)
         {
             printf("Could not create thread %d\n", i);
-            free(thread_args);
         }
     }
 
     for (int i = 0; i < num_threads; ++i)
     {
-        void* to_free = NULL; // Free args given to thread.
-        if (pthread_join(threads[i], &to_free) == 0)
-        {
-            free(to_free);
-        }
-        else
+        if (pthread_join(threads[i], NULL) != 0)
         {
             printf("Could not join thread %d\n", i);
         }
@@ -127,6 +119,7 @@ int main(int argc, char** argv)
     }
 
     free(threads);
+    free(thread_args);
 
     // print file results in the order they were requested.
     for (int i = 0; i < num_files; ++i)
