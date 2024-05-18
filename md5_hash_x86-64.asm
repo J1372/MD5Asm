@@ -43,15 +43,15 @@ block_zero_pad:
 	lea	rcx, [rdi + rsi] ; rcx = ptr iterator
 	lea	rdx, [rdi + 56] ; rdx = end ptr
 
-	block_zero_pad_loop:
-	; while it < end_it
 	cmp	rdx, rcx
-	jbe	block_zero_pad_loop_break
-
+	jna	block_zero_pad_loop_break
+	block_zero_pad_loop:
 	mov	byte [rcx], 0
 
+	; while it < end_it
 	inc	rcx
-	jmp	block_zero_pad_loop
+	cmp	rdx, rcx
+	ja	block_zero_pad_loop
 
 	block_zero_pad_loop_break:
 	leave
@@ -150,8 +150,7 @@ md5_hash_block:
 
 	inc	esi
 	cmp	esi, 16
-	je	md5_inner_hash_loop2
-	jmp	md5_inner_hash_loop1
+	jne	md5_inner_hash_loop1
 
 	md5_inner_hash_loop2:
 	; F = (D & B) | (~D & C)
@@ -173,8 +172,7 @@ md5_hash_block:
 
 	inc	esi
 	cmp	esi, 32
-	je	md5_inner_hash_loop3
-	jmp	md5_inner_hash_loop2
+	jne	md5_inner_hash_loop2
 
 
 
@@ -195,8 +193,7 @@ md5_hash_block:
 
 	inc	esi
 	cmp	esi, 48
-	je	md5_inner_hash_loop4
-	jmp	md5_inner_hash_loop3
+	jne	md5_inner_hash_loop3
 
 
 
@@ -219,12 +216,13 @@ md5_hash_block:
 
 	inc	esi
 	cmp	esi, 64
-	je	md5_inner_hash_loop4_break
-	jmp	md5_inner_hash_loop4
+	jne	md5_inner_hash_loop4
 
 
 
-	md5_inner_hash_loop4_break:
+
+	; loop break
+
 	; Add with previous ABCD
 	add	eax, [r13 + 0]
 	add	ebx, [r13 + 4]
@@ -366,12 +364,10 @@ md5_get_hash_rep:
 	inc	rdi
 	add	rsi, 2
 	cmp	rdi, rdx
-	je	md5_get_hash_rep_loop_break
-	jmp md5_get_hash_rep_loop
+	jne	md5_get_hash_rep_loop
 
+	; loop break
 
-
-	md5_get_hash_rep_loop_break:
 	; Null terminate string.
 	mov	byte [rsi], 0
 	leave
